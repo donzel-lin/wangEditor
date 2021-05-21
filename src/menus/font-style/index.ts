@@ -5,7 +5,7 @@
  */
 
 import DropListMenu from '../menu-constructors/DropListMenu'
-import $ from '../../utils/dom-core'
+import $, { DomElement } from '../../utils/dom-core'
 import Editor from '../../editor/index'
 import { MenuActive } from '../menu-constructors/Menu'
 import FontStyleList from './FontStyleList'
@@ -36,6 +36,28 @@ class FontStyle extends DropListMenu implements MenuActive {
      * @param value value
      */
     public command(value: string): void {
+        const editor = this.editor
+        const isEmptySelection = editor.selection.isSelectionEmpty()
+
+        const $selectionElem = editor.selection.getSelectionContainerElem()?.elems[0]
+
+        if ($selectionElem == null) return
+
+        if (isEmptySelection) {
+            let $elem: DomElement
+            $elem = $(`<font face="${value}">&#8203;</font>`)
+            editor.cmd.do('insertElem', $elem)
+            editor.selection.createRangeByElem($elem, false)
+        } else {
+            editor.cmd.do('fontName', value)
+        }
+        if (isEmptySelection) {
+            // 需要将选区范围折叠起来
+            editor.selection.collapseRange()
+            editor.selection.restoreSelection()
+        }
+    }
+    public command1(value: string): void {
         const editor = this.editor
         const isEmptySelection = editor.selection.isSelectionEmpty()
 
