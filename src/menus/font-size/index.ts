@@ -5,7 +5,7 @@
  */
 
 import DropListMenu from '../menu-constructors/DropListMenu'
-import $ from '../../utils/dom-core'
+import $, { DomElement } from '../../utils/dom-core'
 import Editor from '../../editor/index'
 import { MenuActive } from '../menu-constructors/Menu'
 import FontSizeList from './FontSizeList'
@@ -42,6 +42,27 @@ class FontSize extends DropListMenu implements MenuActive {
         let selectionElem = editor.selection.getSelectionContainerElem()?.elems[0]
 
         if (selectionElem == null) return
+        if (isEmptySelection) {
+            let $elem: DomElement
+            $elem = $(`<font size="${value}">&#8203;</font>`)
+            editor.cmd.do('insertElem', $elem)
+            editor.selection.createRangeByElem($elem, false)
+        } else {
+            editor.cmd.do('fontSize', value)
+        }
+        if (isEmptySelection) {
+            // 需要将选区范围折叠起来
+            editor.selection.collapseRange()
+            editor.selection.restoreSelection()
+        }
+    }
+    public command1(value: string): void {
+        const editor = this.editor
+        const isEmptySelection = editor.selection.isSelectionEmpty()
+
+        let selectionElem = editor.selection.getSelectionContainerElem()?.elems[0]
+
+        if (selectionElem == null) return
 
         const isFont = selectionElem?.nodeName.toLowerCase() !== 'p'
         const isSameSize = selectionElem?.getAttribute('size') === value
@@ -49,7 +70,7 @@ class FontSize extends DropListMenu implements MenuActive {
             if (isFont && !isSameSize) {
                 const $elems = editor.selection.getSelectionRangeTopNodes()
                 const focusElem = $elems[0].elems[0]
-                editor.selection.createRangeByElem($elems[0])
+                editor.selection.createRangeByElem($elems[0], false)
                 editor.selection.moveCursor(focusElem)
                 selectionElem = focusElem
             }

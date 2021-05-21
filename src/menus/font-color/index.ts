@@ -5,7 +5,7 @@
  */
 
 import DropListMenu from '../menu-constructors/DropListMenu'
-import $ from '../../utils/dom-core'
+import $, { DomElement } from '../../utils/dom-core'
 import Editor from '../../editor/index'
 import { MenuActive } from '../menu-constructors/Menu'
 
@@ -40,6 +40,38 @@ class FontColor extends DropListMenu implements MenuActive {
      * @param value value
      */
     public command(value: string): void {
+        const editor = this.editor
+        const isEmptySelection = editor.selection.isSelectionEmpty()
+        const $selectionElem = editor.selection.getSelectionContainerElem()?.elems[0]
+
+        if ($selectionElem == null) return
+
+        if (isEmptySelection) {
+            let $elem: DomElement
+            $elem = $(`<font color="${value}">&#8203;</font>`)
+            editor.cmd.do('insertElem', $elem)
+            editor.selection.createRangeByElem($elem, false)
+        } else {
+            // 获取选区范围的文字
+            const $selectionText = editor.selection.getSelectionText()
+            // 如果设置的是 a 标签就特殊处理一下，避免回车换行设置颜色无效的情况
+            // 只处理选中a标签内全部文字的情况，因为选中部分文字不存在换行颜色失效的情况
+            if ($selectionElem.nodeName === 'A' && $selectionElem.textContent === $selectionText) {
+                // 创建一个相当于占位的元素
+                const _payloadElem = $('<span>&#8203;</span>').getNode()
+                // 添加到a标签之后
+                $selectionElem.appendChild(_payloadElem)
+            }
+            editor.cmd.do('foreColor', value)
+        }
+
+        if (isEmptySelection) {
+            // 需要将选区范围折叠起来
+            editor.selection.collapseRange()
+            editor.selection.restoreSelection()
+        }
+    }
+    public command1(value: string): void {
         const editor = this.editor
         const isEmptySelection = editor.selection.isSelectionEmpty()
         const $selectionElem = editor.selection.getSelectionContainerElem()?.elems[0]
