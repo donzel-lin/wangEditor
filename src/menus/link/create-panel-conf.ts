@@ -8,7 +8,7 @@ import { PanelConf } from '../menu-constructors/Panel'
 import { getRandom } from '../../utils/util'
 import $, { DomElement } from '../../utils/dom-core'
 import isActive from './is-active'
-import { insertHtml } from './util'
+// import { insertHtml } from './util'
 
 export default function (editor: Editor, text: string, link: string): PanelConf {
     // panel 中需要用到的id
@@ -128,9 +128,9 @@ export default function (editor: Editor, text: string, link: string): PanelConf 
                         fn: () => {
                             // 获取选取
                             editor.selection.restoreSelection()
-                            const topNode = editor.selection
-                                .getSelectionRangeTopNodes()[0]
-                                .getNode()
+                            // const topNode = editor.selection
+                            //     .getSelectionRangeTopNodes()[0]
+                            //     .getNode()
                             const selection = window.getSelection()
                             // 执行插入链接
                             const $link = $('#' + inputLinkId)
@@ -139,8 +139,11 @@ export default function (editor: Editor, text: string, link: string): PanelConf 
                             let text = $text.val().trim()
 
                             let html: string = ''
-                            if (selection && !selection?.isCollapsed)
-                                html = insertHtml(selection, topNode)?.trim()
+                            if (selection && !selection?.isCollapsed) {
+                                // html = insertHtml(selection, topNode)?.trim()
+                                // 之前有修改过 修改字号和字体颜色导致 的bug，这里如果还是这样写，会进入死循环，这里直接插入a标签。。而忽略本身自带的标签
+                                html = text
+                            }
 
                             // 去除html的tag标签
                             let htmlText = html?.replace(/<.*?>/g, '')
